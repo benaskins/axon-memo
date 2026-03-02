@@ -2,7 +2,6 @@ package mem
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -52,9 +51,8 @@ func (s *Server) StopScheduler() {
 }
 
 func (s *Server) handleExtract(w http.ResponseWriter, r *http.Request) {
-	var req ExtractRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		axon.WriteError(w, http.StatusBadRequest, "Invalid request body")
+	req, ok := axon.DecodeJSON[ExtractRequest](w, r)
+	if !ok {
 		return
 	}
 
@@ -124,9 +122,8 @@ func (s *Server) handleRecall(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) handleConsolidate(w http.ResponseWriter, r *http.Request) {
-	var req ConsolidateRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		axon.WriteError(w, http.StatusBadRequest, "Invalid request body")
+	req, ok := axon.DecodeJSON[ConsolidateRequest](w, r)
+	if !ok {
 		return
 	}
 
