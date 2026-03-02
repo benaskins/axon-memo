@@ -105,7 +105,7 @@ func BuildExtractionPrompt(messages []ConversationMessage, agent *AgentInfo, met
 
 # Conversation Context
 Agent: %s
-Agent identity: %s
+System prompt: %s
 Current relationship metrics: trust=%.2f, intimacy=%.2f, autonomy=%.2f, reciprocity=%.2f, playfulness=%.2f, conflict=%.2f
 
 # Conversation History
@@ -147,7 +147,7 @@ Return JSON only. Example:
     "intimacy": {"delta": 0.05, "reason": "..."}
   }
 }`,
-		agent.Name, agent.Identity,
+		agent.Name, agent.SystemPrompt,
 		metrics.Trust, metrics.Intimacy, metrics.Autonomy,
 		metrics.Reciprocity, metrics.Playfulness, metrics.Conflict,
 		conversationText)

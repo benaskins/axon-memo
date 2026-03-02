@@ -203,7 +203,7 @@ func (c *Consolidator) generatePersonality(ctx context.Context, agentSlug, userI
 		return fmt.Errorf("fetch agent info: %w", err)
 	}
 
-	prompt := BuildPersonalityPrompt(agentInfo.Name, agentInfo.Identity, agentInfo.Relationship, metrics, result)
+	prompt := BuildPersonalityPrompt(agentInfo.Name, agentInfo.SystemPrompt, metrics, result)
 
 	personalityContext, err := GeneratePersonalityContext(ctx, c.generate, prompt)
 	if err != nil {
@@ -214,7 +214,7 @@ func (c *Consolidator) generatePersonality(ctx context.Context, agentSlug, userI
 }
 
 // BuildPersonalityPrompt constructs the LLM prompt for personality generation.
-func BuildPersonalityPrompt(agentName, identity, relationship string, metrics *RelationshipMetrics, result *ConsolidationResult) string {
+func BuildPersonalityPrompt(agentName, systemPrompt string, metrics *RelationshipMetrics, result *ConsolidationResult) string {
 	patternText := ""
 	for _, p := range result.Patterns {
 		patternText += fmt.Sprintf("- %s (%s significance)\n", p.Insight, p.Significance)
@@ -224,8 +224,7 @@ func BuildPersonalityPrompt(agentName, identity, relationship string, metrics *R
 
 # Agent Definition
 Name: %s
-Identity: %s
-Relationship: %s
+System prompt: %s
 
 # Relationship Metrics
 Trust: %.2f (%.0f%%)
@@ -247,7 +246,7 @@ Generate a personality modifier (200-300 words) that:
 
 Write in second person ("You've developed..."), as instructions to the agent.
 Return plain text (not JSON).`,
-		agentName, identity, relationship,
+		agentName, systemPrompt,
 		metrics.Trust, metrics.Trust*100,
 		metrics.Intimacy, metrics.Intimacy*100,
 		metrics.Autonomy, metrics.Autonomy*100,

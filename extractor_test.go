@@ -12,8 +12,8 @@ func TestBuildExtractionPrompt(t *testing.T) {
 	}
 
 	agent := &AgentInfo{
-		Name:     "Test Agent",
-		Identity: "A helpful assistant",
+		Name:         "Test Agent",
+		SystemPrompt: "A helpful assistant",
 	}
 
 	metrics := &RelationshipMetrics{

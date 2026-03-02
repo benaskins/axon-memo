@@ -116,8 +116,7 @@ type ConversationMessage struct {
 // AgentInfo holds agent identity data needed for memory extraction.
 type AgentInfo struct {
 	Name         string
-	Identity     string
-	Relationship string
+	SystemPrompt string
 }
 
 // RecallRequest specifies parameters for memory retrieval.
