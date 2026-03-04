@@ -161,13 +161,9 @@ func (c *Consolidator) applyConsolidation(ctx context.Context, result *Consolida
 	now := time.Now()
 
 	for _, suggestion := range result.ConsolidationSuggestions {
-		if err := c.store.MarkMemoriesConsolidated(ctx, suggestion.MemoryIDs); err != nil {
-			return fmt.Errorf("mark consolidated: %w", err)
-		}
-
 		embedding, err := c.embed(ctx, suggestion.ConsolidatedContent)
 		if err != nil {
-			slog.Warn("failed to generate embedding for consolidated memory", "error", err)
+			slog.Warn("failed to generate embedding for consolidated memory, skipping", "error", err)
 			continue
 		}
 
@@ -185,6 +181,10 @@ func (c *Consolidator) applyConsolidation(ctx context.Context, result *Consolida
 
 		if err != nil {
 			return fmt.Errorf("save consolidated memory: %w", err)
+		}
+
+		if err := c.store.MarkMemoriesConsolidated(ctx, suggestion.MemoryIDs); err != nil {
+			return fmt.Errorf("mark consolidated: %w", err)
 		}
 	}
 

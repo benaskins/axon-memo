@@ -69,7 +69,7 @@ func (s *Server) handleExtract(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ctx := context.Background()
+	ctx := r.Context()
 
 	job, err := s.store.CreateExtractionJob(ctx, req.ConversationID, req.AgentSlug, req.UserID)
 	if err != nil {
@@ -109,6 +109,13 @@ func (s *Server) handleRecall(w http.ResponseWriter, r *http.Request) {
 			axon.WriteError(w, http.StatusBadRequest, "Invalid limit parameter")
 			return
 		}
+	}
+
+	if limit <= 0 {
+		limit = 10
+	}
+	if limit > 100 {
+		limit = 100
 	}
 
 	ctx := r.Context()

@@ -47,8 +47,10 @@ func (s *Scheduler) run() {
 		duration := next2am.Sub(now)
 		slog.Info("next consolidation scheduled", "time", next2am.Format("2006-01-02 15:04:05"), "in", duration.String())
 
+		timer := time.NewTimer(duration)
+
 		select {
-		case <-time.After(duration):
+		case <-timer.C:
 			slog.Info("starting scheduled consolidation")
 
 			if err := s.consolidator.ConsolidateAll(s.ctx); err != nil {
@@ -60,6 +62,7 @@ func (s *Scheduler) run() {
 			}
 
 		case <-s.ctx.Done():
+			timer.Stop()
 			slog.Info("consolidation scheduler stopped")
 			return
 		}

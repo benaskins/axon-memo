@@ -3,6 +3,7 @@ package mem
 import (
 	"context"
 	"fmt"
+	"net/url"
 	"time"
 
 	"github.com/benaskins/axon"
@@ -28,7 +29,7 @@ func (c *ConversationClient) GetMessages(ctx context.Context, conversationID str
 		CreatedAt time.Time `json:"created_at"`
 	}
 
-	path := fmt.Sprintf("/internal/conversations/%s/messages", conversationID)
+	path := fmt.Sprintf("/internal/conversations/%s/messages", url.PathEscape(conversationID))
 	if err := c.client.Get(ctx, path, &messages); err != nil {
 		return nil, fmt.Errorf("fetch messages: %w", err)
 	}
@@ -50,7 +51,7 @@ func (c *ConversationClient) GetAgentInfo(ctx context.Context, agentSlug string)
 		SystemPrompt string `json:"system_prompt"`
 	}
 
-	path := fmt.Sprintf("/internal/agents/%s", agentSlug)
+	path := fmt.Sprintf("/internal/agents/%s", url.PathEscape(agentSlug))
 	err := c.client.Get(ctx, path, &agent)
 	if err != nil {
 		if axon.IsStatusError(err, 404) {

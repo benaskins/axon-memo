@@ -128,11 +128,15 @@ func BalanceTypes(scored []RecalledMemory, limit int) []RecalledMemory {
 	if len(emotional) > 0 {
 		selected = append(selected, emotional[0])
 	}
-	if len(episodic) > 0 {
+	if len(episodic) > 0 && len(selected) < limit {
 		selected = append(selected, episodic[0])
 	}
-	if len(semantic) > 0 {
+	if len(semantic) > 0 && len(selected) < limit {
 		selected = append(selected, semantic[0])
+	}
+
+	if len(selected) >= limit {
+		return selected[:limit]
 	}
 
 	// Fill remaining slots with highest-scoring
