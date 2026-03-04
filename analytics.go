@@ -15,6 +15,7 @@ type AnalyticsEvent struct {
 	Timestamp      time.Time `json:"timestamp"`
 	AgentSlug      string    `json:"agent_slug,omitempty"`
 	UserID         string    `json:"user_id,omitempty"`
+	RunID          string    `json:"run_id,omitempty"`
 	MemoryType     string    `json:"memory_type,omitempty"`
 	Importance     float32   `json:"importance,omitempty"`
 	Trust          float32   `json:"trust,omitempty"`
