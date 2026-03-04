@@ -9,19 +9,21 @@ import (
 
 // Consolidator analyzes and merges memories overnight.
 type Consolidator struct {
-	store    MemoryStore
-	source   ConversationSource
-	generate TextGenerator
-	embed    EmbeddingGenerator
+	store     MemoryStore
+	source    ConversationSource
+	generate  TextGenerator
+	embed     EmbeddingGenerator
+	analytics AnalyticsEmitter
 }
 
 // NewConsolidator creates a Consolidator with the given dependencies.
 func NewConsolidator(store MemoryStore, source ConversationSource, generate TextGenerator, embed EmbeddingGenerator) *Consolidator {
 	return &Consolidator{
-		store:    store,
-		source:   source,
-		generate: generate,
-		embed:    embed,
+		store:     store,
+		source:    source,
+		generate:  generate,
+		embed:     embed,
+		analytics: NoopAnalytics{},
 	}
 }
 
@@ -82,6 +84,9 @@ func (c *Consolidator) ConsolidateAgent(ctx context.Context, agentSlug, userID s
 	if err := c.generatePersonality(ctx, agentSlug, userID, metrics, result); err != nil {
 		return fmt.Errorf("generate personality: %w", err)
 	}
+
+	// Emit analytics
+	c.analytics.Emit(ConsolidationCompletedEvent(agentSlug, userID, len(result.Patterns), len(result.ConsolidationSuggestions)))
 
 	slog.Info("consolidation complete",
 		"agent", agentSlug,

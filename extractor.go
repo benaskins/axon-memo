@@ -9,19 +9,21 @@ import (
 
 // Extractor orchestrates memory extraction from conversations.
 type Extractor struct {
-	store    MemoryStore
-	source   ConversationSource
-	generate TextGenerator
-	embed    EmbeddingGenerator
+	store     MemoryStore
+	source    ConversationSource
+	generate  TextGenerator
+	embed     EmbeddingGenerator
+	analytics AnalyticsEmitter
 }
 
 // NewExtractor creates an Extractor with the given dependencies.
 func NewExtractor(store MemoryStore, source ConversationSource, generate TextGenerator, embed EmbeddingGenerator) *Extractor {
 	return &Extractor{
-		store:    store,
-		source:   source,
-		generate: generate,
-		embed:    embed,
+		store:     store,
+		source:    source,
+		generate:  generate,
+		embed:     embed,
+		analytics: NoopAnalytics{},
 	}
 }
 
@@ -81,6 +83,27 @@ func (e *Extractor) ExtractConversation(ctx context.Context, jobID, conversation
 
 	if err := e.store.UpdateJobStatus(ctx, jobID, "completed", nil); err != nil {
 		return fmt.Errorf("complete job: %w", err)
+	}
+
+	// Emit analytics
+	var events []AnalyticsEvent
+	for _, m := range result.Episodic {
+		events = append(events, MemoryExtractedEvent(agentSlug, userID, "episodic", m.Importance))
+	}
+	for _, m := range result.Semantic {
+		events = append(events, MemoryExtractedEvent(agentSlug, userID, "semantic", m.Importance))
+	}
+	for _, m := range result.Emotional {
+		events = append(events, MemoryExtractedEvent(agentSlug, userID, "emotional", m.Importance))
+	}
+	if len(events) > 0 {
+		e.analytics.Emit(events...)
+	}
+
+	// Snapshot relationship metrics after update
+	updatedMetrics, err := e.store.GetOrCreateRelationshipMetrics(ctx, agentSlug, userID)
+	if err == nil {
+		e.analytics.Emit(RelationshipSnapshotEvent(agentSlug, userID, updatedMetrics))
 	}
 
 	slog.Info("extraction completed",

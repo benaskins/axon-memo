@@ -11,11 +11,14 @@ import (
 
 // Server provides HTTP handlers for the memory service.
 type Server struct {
-	store      MemoryStore
-	extractor  *Extractor
-	retriever  *Retriever
+	store        MemoryStore
+	extractor    *Extractor
+	retriever    *Retriever
 	consolidator *Consolidator
-	scheduler  *Scheduler
+	scheduler    *Scheduler
+
+	// Analytics emits analytics events. Set before calling Handler().
+	Analytics AnalyticsEmitter
 }
 
 // NewServer creates a Server with all memory service components.
@@ -29,7 +32,12 @@ func NewServer(store MemoryStore, extractor *Extractor, retriever *Retriever, co
 }
 
 // Handler returns an http.Handler with all memory service routes.
+// Call this after setting optional dependencies like Analytics.
 func (s *Server) Handler() http.Handler {
+	if s.Analytics != nil {
+		s.extractor.analytics = s.Analytics
+		s.consolidator.analytics = s.Analytics
+	}
 	mux := http.NewServeMux()
 	mux.HandleFunc("POST /api/memory/extract", s.handleExtract)
 	mux.HandleFunc("GET /api/memory/recall", s.handleRecall)
