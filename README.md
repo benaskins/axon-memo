@@ -38,4 +38,4 @@ Memory architecture inspired by the [A-MEM](https://arxiv.org/abs/2502.12110) pa
 
 ## License
 
-Apache 2.0 — see [LICENSE](LICENSE).
+MIT — see [LICENSE](LICENSE).
