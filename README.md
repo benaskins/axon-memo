@@ -15,11 +15,11 @@ Requires Go 1.24+.
 ## Usage
 
 ```go
-extractor := mem.NewExtractor(ollamaClient, extractionModel)
-retriever := mem.NewRetriever(memoryStore, ollamaClient, embeddingModel)
-consolidator := mem.NewConsolidator(memoryStore, ollamaClient, consolidationModel)
+extractor := memo.NewExtractor(ollamaClient, extractionModel)
+retriever := memo.NewRetriever(memoryStore, ollamaClient, embeddingModel)
+consolidator := memo.NewConsolidator(memoryStore, ollamaClient, consolidationModel)
 
-srv := mem.NewServer(memoryStore, extractor, retriever, consolidator)
+srv := memo.NewServer(memoryStore, extractor, retriever, consolidator)
 http.Handle("/", srv)
 ```
 
@@ -31,6 +31,10 @@ http.Handle("/", srv)
 - `Retriever` — semantic recall with embedding similarity
 - `Consolidator` — deduplicates and merges related memories
 - `Server` — HTTP server with extract, recall, and consolidation endpoints
+
+## Acknowledgements
+
+Memory architecture inspired by the [A-MEM](https://arxiv.org/abs/2502.12110) paper on agentic memory for LLM agents (Xu et al., 2025).
 
 ## License
 
