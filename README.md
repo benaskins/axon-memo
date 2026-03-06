@@ -1,6 +1,6 @@
 # axon-memo
 
-Long-term memory extraction and consolidation for LLM-powered agents.
+Long-term memory extraction and consolidation for LLM-powered agents. Part of [lamina](https://github.com/benaskins/lamina) — each axon package can be used independently.
 
 Extracts facts from conversations, deduplicates them, and serves consolidated memories on demand.
 
