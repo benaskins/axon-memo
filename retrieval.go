@@ -130,7 +130,7 @@ func BalanceTypes(scored []RecalledMemory, limit int) []RecalledMemory {
 	// Ensure at least 1 of each type (if available)
 	selected := []RecalledMemory{}
 
-	if len(emotional) > 0 {
+	if len(emotional) > 0 && len(selected) < limit {
 		selected = append(selected, emotional[0])
 	}
 	if len(episodic) > 0 && len(selected) < limit {
@@ -161,6 +161,10 @@ func BalanceTypes(scored []RecalledMemory, limit int) []RecalledMemory {
 		if !alreadySelected {
 			selected = append(selected, mem)
 		}
+	}
+
+	if len(selected) > limit {
+		selected = selected[:limit]
 	}
 
 	return selected

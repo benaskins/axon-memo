@@ -129,12 +129,11 @@ func (s *Server) handleExtract(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	go func() {
-		ctx := context.Background()
+	go func(ctx context.Context) {
 		if err := s.extractor.ExtractConversation(ctx, job.ID, req.ConversationID, req.AgentSlug, req.UserID); err != nil {
 			slog.Error("extraction failed", "job_id", job.ID, "error", err)
 		}
-	}()
+	}(context.WithoutCancel(r.Context()))
 
 	axon.WriteJSON(w, http.StatusAccepted, ExtractResponse{
 		JobID:     job.ID,

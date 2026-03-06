@@ -21,6 +21,7 @@ type MemoryStore interface {
 	SavePersonalityContext(ctx context.Context, agentSlug, userID, context string) error
 	GetPersonalityContext(ctx context.Context, agentSlug, userID string) (string, error)
 	GetActiveAgents(ctx context.Context) ([]string, error)
+	GetActiveUsers(ctx context.Context, agentSlug string) ([]string, error)
 }
 
 // ConversationSource reads conversation data. Today this reads directly from

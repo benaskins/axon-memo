@@ -37,11 +37,17 @@ func (c *Consolidator) ConsolidateAll(ctx context.Context) error {
 	slog.Info("starting overnight consolidation", "agents", len(agents))
 
 	for _, agentSlug := range agents {
-		userID := "default"
-
-		if err := c.ConsolidateAgent(ctx, agentSlug, userID); err != nil {
-			slog.Error("consolidation failed", "agent", agentSlug, "user", userID, "error", err)
+		users, err := c.store.GetActiveUsers(ctx, agentSlug)
+		if err != nil {
+			slog.Error("failed to get active users", "agent", agentSlug, "error", err)
 			continue
+		}
+
+		for _, userID := range users {
+			if err := c.ConsolidateAgent(ctx, agentSlug, userID); err != nil {
+				slog.Error("consolidation failed", "agent", agentSlug, "user", userID, "error", err)
+				continue
+			}
 		}
 	}
 
