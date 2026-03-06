@@ -15,6 +15,7 @@ type Memory struct {
 	Importance     float64
 	CreatedAt      time.Time
 	Consolidated   bool
+	Durable        bool // durable memories skip recency decay and emotional boost in ranking
 }
 
 // MemoryWithDistance pairs a Memory with a vector distance score.
@@ -165,6 +166,23 @@ type ExtractResponse struct {
 	JobID     string    `json:"job_id"`
 	Status    string    `json:"status"`
 	CreatedAt time.Time `json:"created_at"`
+}
+
+// StoreRequest is the HTTP request body for directly storing a memory.
+type StoreRequest struct {
+	AgentSlug  string  `json:"agent_slug"`
+	UserID     string  `json:"user_id"`
+	MemoryType string  `json:"memory_type"` // episodic, semantic, emotional
+	Content    string  `json:"content"`
+	Importance float64 `json:"importance"`
+	Durable    bool    `json:"durable"`
+}
+
+// StoreResponse is the HTTP response for storing a memory.
+type StoreResponse struct {
+	ID      string `json:"id"`
+	Status  string `json:"status"`
+	Durable bool   `json:"durable"`
 }
 
 // ConsolidateRequest is the HTTP request body for memory consolidation.

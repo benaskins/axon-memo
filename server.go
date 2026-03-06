@@ -39,6 +39,7 @@ func (s *Server) Handler() http.Handler {
 		s.consolidator.analytics = s.Analytics
 	}
 	mux := http.NewServeMux()
+	mux.HandleFunc("POST /api/memory/store", s.handleStore)
 	mux.HandleFunc("POST /api/memory/extract", s.handleExtract)
 	mux.HandleFunc("GET /api/memory/recall", s.handleRecall)
 	mux.HandleFunc("POST /api/memory/consolidate", s.handleConsolidate)
@@ -56,6 +57,56 @@ func (s *Server) StopScheduler() {
 	if s.scheduler != nil {
 		s.scheduler.Stop()
 	}
+}
+
+func (s *Server) handleStore(w http.ResponseWriter, r *http.Request) {
+	req, ok := axon.DecodeJSON[StoreRequest](w, r)
+	if !ok {
+		return
+	}
+
+	if req.AgentSlug == "" || req.UserID == "" || req.Content == "" {
+		axon.WriteError(w, http.StatusBadRequest, "Missing required fields: agent_slug, user_id, content")
+		return
+	}
+
+	if req.MemoryType == "" {
+		req.MemoryType = "semantic"
+	}
+
+	if req.Importance == 0 {
+		req.Importance = 0.5
+	}
+
+	ctx := r.Context()
+
+	embedding, err := s.retriever.embed(ctx, req.Content)
+	if err != nil {
+		slog.Error("failed to generate embedding", "error", err)
+		axon.WriteError(w, http.StatusInternalServerError, "Failed to generate embedding")
+		return
+	}
+
+	id, err := s.store.SaveMemory(ctx, Memory{
+		AgentSlug:  req.AgentSlug,
+		UserID:     req.UserID,
+		MemoryType: req.MemoryType,
+		Content:    req.Content,
+		Embedding:  embedding,
+		Importance: req.Importance,
+		Durable:    req.Durable,
+	})
+	if err != nil {
+		slog.Error("failed to store memory", "error", err)
+		axon.WriteError(w, http.StatusInternalServerError, "Failed to store memory")
+		return
+	}
+
+	axon.WriteJSON(w, http.StatusCreated, StoreResponse{
+		ID:      id,
+		Status:  "stored",
+		Durable: req.Durable,
+	})
 }
 
 func (s *Server) handleExtract(w http.ResponseWriter, r *http.Request) {

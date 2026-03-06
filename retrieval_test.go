@@ -51,6 +51,42 @@ func TestRerank(t *testing.T) {
 	}
 }
 
+func TestRerank_DurableMemorySkipsDecay(t *testing.T) {
+	now := time.Now()
+	candidates := []MemoryWithDistance{
+		{
+			Memory: Memory{
+				ID:         "recent",
+				MemoryType: "episodic",
+				Content:    "Recent ephemeral memory",
+				Importance: 0.7,
+				CreatedAt:  now.Add(-2 * 24 * time.Hour), // 2 days old
+			},
+			Distance: 0.3,
+		},
+		{
+			Memory: Memory{
+				ID:         "old-durable",
+				MemoryType: "semantic",
+				Content:    "Pull-based coordination, not assignment",
+				Importance: 0.9,
+				Durable:    true,
+				CreatedAt:  now.Add(-180 * 24 * time.Hour), // 6 months old
+			},
+			Distance: 0.3, // Same semantic match
+		},
+	}
+
+	scored := Rerank(candidates)
+
+	// Durable memory should rank higher despite being 6 months old,
+	// because it has higher importance and no recency decay
+	if scored[0].ID != "old-durable" {
+		t.Errorf("expected durable memory to rank first, got %s (scores: %f vs %f)",
+			scored[0].ID, scored[0].RelevanceScore, scored[1].RelevanceScore)
+	}
+}
+
 func TestBalanceTypes(t *testing.T) {
 	scored := []RecalledMemory{
 		{ID: "1", Type: "semantic", RelevanceScore: 0.9},

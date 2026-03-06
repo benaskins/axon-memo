@@ -68,15 +68,20 @@ func Rerank(candidates []MemoryWithDistance) []RecalledMemory {
 		semanticRelevance := 1.0 - candidate.Distance
 		importanceWeight := candidate.Importance
 
-		daysSince := now.Sub(candidate.CreatedAt).Hours() / 24
-		recencyBoost := math.Exp(-daysSince / 30.0)
+		var finalScore float64
+		if candidate.Durable {
+			finalScore = semanticRelevance * importanceWeight
+		} else {
+			daysSince := now.Sub(candidate.CreatedAt).Hours() / 24
+			recencyBoost := math.Exp(-daysSince / 30.0)
 
-		emotionalBoost := 1.0
-		if candidate.EmotionalTags != nil {
-			emotionalBoost = 1.0 + (candidate.EmotionalTags.Arousal * 0.5)
+			emotionalBoost := 1.0
+			if candidate.EmotionalTags != nil {
+				emotionalBoost = 1.0 + (candidate.EmotionalTags.Arousal * 0.5)
+			}
+
+			finalScore = semanticRelevance * importanceWeight * recencyBoost * emotionalBoost
 		}
-
-		finalScore := semanticRelevance * importanceWeight * recencyBoost * emotionalBoost
 
 		emotionalContext := ""
 		if candidate.EmotionalTags != nil && len(candidate.EmotionalTags.Emotions) > 0 {
