@@ -23,16 +23,14 @@ type MemoryWithDistance struct {
 	Distance float64
 }
 
-// RelationshipMetrics tracks relationship dynamics between an agent and user.
+// RelationshipMetrics tracks trustworthiness between an agent and user.
+// Based on Mayer, Davis & Schoorman (1995) "An Integrative Model of Organizational Trust."
 type RelationshipMetrics struct {
 	AgentSlug          string
 	UserID             string
-	Trust              float64
-	Intimacy           float64
-	Autonomy           float64
-	Reciprocity        float64
-	Playfulness        float64
-	Conflict           float64
+	Ability            float64 // competence in the relevant domain
+	Benevolence        float64 // positive orientation toward the user's interests
+	Integrity          float64 // adherence to acceptable principles
 	TotalConversations int
 	LastInteraction    *time.Time
 	UpdatedAt          time.Time
@@ -144,14 +142,12 @@ type RecalledMemory struct {
 	RelevanceScore   float64   `json:"relevance_score"`
 }
 
-// RelationshipContext provides relationship state for recall responses.
+// RelationshipContext provides trustworthiness state for recall responses.
+// Dimensions from Mayer, Davis & Schoorman (1995).
 type RelationshipContext struct {
-	Trust              float64 `json:"trust"`
-	Intimacy           float64 `json:"intimacy"`
-	Autonomy           float64 `json:"autonomy"`
-	Reciprocity        float64 `json:"reciprocity"`
-	Playfulness        float64 `json:"playfulness"`
-	Conflict           float64 `json:"conflict"`
+	Ability            float64 `json:"ability"`
+	Benevolence        float64 `json:"benevolence"`
+	Integrity          float64 `json:"integrity"`
 	PersonalityContext string  `json:"personality_context"`
 	TotalConversations int     `json:"total_conversations"`
 	TotalMemories      int     `json:"total_memories"`

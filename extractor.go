@@ -129,7 +129,7 @@ func BuildExtractionPrompt(messages []ConversationMessage, agent *AgentInfo, met
 # Conversation Context
 Agent: %s
 System prompt: %s
-Current relationship metrics: trust=%.2f, intimacy=%.2f, autonomy=%.2f, reciprocity=%.2f, playfulness=%.2f, conflict=%.2f
+Current trustworthiness metrics (Mayer et al. 1995): ability=%.2f, benevolence=%.2f, integrity=%.2f
 
 # Conversation History
 %s
@@ -150,14 +150,14 @@ What emotions were present? User's emotional state, turning points, how they fel
 Format: [{content: "...", importance: 0.0-1.0, emotional_tags: {valence: -1.0 to 1.0, arousal: 0.0 to 1.0, emotions: [...]}}]
 
 ## RELATIONSHIP SHIFTS
-How did the relationship dynamics change in this conversation?
+How did the trustworthiness dimensions change in this conversation?
+- ability: competence in the relevant domain (did the agent demonstrate or fail to demonstrate competence?)
+- benevolence: positive orientation toward the user's interests (did the agent show care for user goals?)
+- integrity: adherence to acceptable principles (was the agent consistent, honest, transparent?)
 {
-  "trust": {delta: +0.05 or -0.02, reason: "explain why"},
-  "intimacy": {delta: ..., reason: ...},
-  "autonomy": {delta: ..., reason: ...},
-  "reciprocity": {delta: ..., reason: ...},
-  "playfulness": {delta: ..., reason: ...},
-  "conflict": {delta: ..., reason: ...}
+  "ability": {delta: +0.05 or -0.02, reason: "explain why"},
+  "benevolence": {delta: ..., reason: ...},
+  "integrity": {delta: ..., reason: ...}
 }
 
 Return JSON only. Example:
@@ -166,13 +166,12 @@ Return JSON only. Example:
   "semantic": [{"content": "...", "importance": 0.6}],
   "emotional": [{"content": "...", "importance": 0.8, "emotional_tags": {"valence": 0.9, "arousal": 0.5, "emotions": ["validation"]}}],
   "relationship_shifts": {
-    "trust": {"delta": 0.03, "reason": "..."},
-    "intimacy": {"delta": 0.05, "reason": "..."}
+    "ability": {"delta": 0.03, "reason": "..."},
+    "benevolence": {"delta": 0.05, "reason": "..."}
   }
 }`,
 		agent.Name, agent.SystemPrompt,
-		metrics.Trust, metrics.Intimacy, metrics.Autonomy,
-		metrics.Reciprocity, metrics.Playfulness, metrics.Conflict,
+		metrics.Ability, metrics.Benevolence, metrics.Integrity,
 		conversationText)
 
 	return prompt

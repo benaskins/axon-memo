@@ -112,13 +112,10 @@ func BuildAnalysisPrompt(memories []Memory, agentSlug string, metrics *Relations
 # Today's Memories (unconsolidated)
 %s
 
-# Current Relationship Metrics
-Trust: %.2f
-Intimacy: %.2f
-Autonomy: %.2f
-Reciprocity: %.2f
-Playfulness: %.2f
-Conflict: %.2f
+# Current Trustworthiness Metrics (Mayer et al. 1995)
+Ability: %.2f (competence in the relevant domain)
+Benevolence: %.2f (positive orientation toward the user's interests)
+Integrity: %.2f (adherence to acceptable principles)
 
 # Task
 Identify patterns and themes:
@@ -129,8 +126,8 @@ What topics, concerns, or subjects came up multiple times?
 ## EMOTIONAL PATTERNS
 What emotional arcs or patterns emerged? (e.g., "started anxious, ended relieved")
 
-## RELATIONSHIP SHIFTS
-How did the relationship dynamics evolve today?
+## TRUSTWORTHINESS SHIFTS
+How did the trustworthiness dimensions evolve today?
 
 ## BEHAVIORAL CHANGES
 Any changes in how the user is interacting?
@@ -142,7 +139,7 @@ Return JSON:
 {
   "patterns": [{"theme": "...", "occurrences": 3, "significance": "high|medium|low", "insight": "..."}],
   "emotional_arcs": [{"arc": "...", "significance": "high|medium|low"}],
-  "relationship_evolution": {"trust": {"delta": 0.05, "reason": "..."}, ...},
+  "relationship_evolution": {"ability": {"delta": 0.05, "reason": "..."}, ...},
   "consolidation_suggestions": [
     {
       "memory_ids": ["uuid1", "uuid2"],
@@ -151,8 +148,7 @@ Return JSON:
   ]
 }`,
 		agentSlug, memoryText,
-		metrics.Trust, metrics.Intimacy, metrics.Autonomy,
-		metrics.Reciprocity, metrics.Playfulness, metrics.Conflict)
+		metrics.Ability, metrics.Benevolence, metrics.Integrity)
 
 	return prompt
 }
@@ -225,19 +221,16 @@ func BuildPersonalityPrompt(agentName, systemPrompt string, metrics *Relationshi
 		patternText += fmt.Sprintf("- %s (%s significance)\n", p.Insight, p.Significance)
 	}
 
-	prompt := fmt.Sprintf(`Based on accumulated memories and relationship metrics, generate a personality context for the agent.
+	prompt := fmt.Sprintf(`Based on accumulated memories and trustworthiness metrics, generate a personality context for the agent.
 
 # Agent Definition
 Name: %s
 System prompt: %s
 
-# Relationship Metrics
-Trust: %.2f (%.0f%%)
-Intimacy: %.2f (%.0f%%)
-Autonomy: %.2f (%.0f%%)
-Reciprocity: %.2f (%.0f%%)
-Playfulness: %.2f (%.0f%%)
-Conflict: %.2f (%.0f%%)
+# Trustworthiness Metrics (Mayer et al. 1995)
+Ability: %.2f (%.0f%%) — competence in the relevant domain
+Benevolence: %.2f (%.0f%%) — positive orientation toward the user's interests
+Integrity: %.2f (%.0f%%) — adherence to acceptable principles
 
 # Recent Patterns
 %s
@@ -247,17 +240,14 @@ Generate a personality modifier (200-300 words) that:
 1. Describes the evolved relationship naturally
 2. Guides agent's tone, approach, and behavior
 3. Reflects growth and changes over time
-4. Adjusts for current emotional state/needs
+4. Adjusts based on current trust dynamics
 
 Write in second person ("You've developed..."), as instructions to the agent.
 Return plain text (not JSON).`,
 		agentName, systemPrompt,
-		metrics.Trust, metrics.Trust*100,
-		metrics.Intimacy, metrics.Intimacy*100,
-		metrics.Autonomy, metrics.Autonomy*100,
-		metrics.Reciprocity, metrics.Reciprocity*100,
-		metrics.Playfulness, metrics.Playfulness*100,
-		metrics.Conflict, metrics.Conflict*100,
+		metrics.Ability, metrics.Ability*100,
+		metrics.Benevolence, metrics.Benevolence*100,
+		metrics.Integrity, metrics.Integrity*100,
 		patternText)
 
 	return prompt

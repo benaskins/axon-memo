@@ -17,12 +17,9 @@ func TestBuildExtractionPrompt(t *testing.T) {
 	}
 
 	metrics := &RelationshipMetrics{
-		Trust:       0.5,
-		Intimacy:    0.5,
-		Autonomy:    0.5,
-		Reciprocity: 0.5,
-		Playfulness: 0.5,
-		Conflict:    0.0,
+		Ability:     0.5,
+		Benevolence: 0.5,
+		Integrity:   0.5,
 	}
 
 	prompt := BuildExtractionPrompt(messages, agent, metrics)
@@ -37,7 +34,7 @@ func TestBuildExtractionPrompt(t *testing.T) {
 	if !strings.Contains(prompt, "Hello!") {
 		t.Error("prompt should contain conversation content")
 	}
-	if !strings.Contains(prompt, "trust=0.50") {
-		t.Error("prompt should contain relationship metrics")
+	if !strings.Contains(prompt, "ability=0.50") {
+		t.Error("prompt should contain trustworthiness metrics")
 	}
 }

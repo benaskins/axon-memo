@@ -174,12 +174,9 @@ func (r *Retriever) getRelationshipContext(ctx context.Context, agentSlug, userI
 	}
 
 	return &RelationshipContext{
-		Trust:              metrics.Trust,
-		Intimacy:           metrics.Intimacy,
-		Autonomy:           metrics.Autonomy,
-		Reciprocity:        metrics.Reciprocity,
-		Playfulness:        metrics.Playfulness,
-		Conflict:           metrics.Conflict,
+		Ability:            metrics.Ability,
+		Benevolence:        metrics.Benevolence,
+		Integrity:          metrics.Integrity,
 		PersonalityContext: personalityContext,
 		TotalConversations: metrics.TotalConversations,
 		TotalMemories:      totalMemories,

@@ -18,12 +18,9 @@ type AnalyticsEvent struct {
 	RunID          string    `json:"run_id,omitempty"`
 	MemoryType     string    `json:"memory_type,omitempty"`
 	Importance     float32   `json:"importance,omitempty"`
-	Trust          float32   `json:"trust,omitempty"`
-	Intimacy       float32   `json:"intimacy,omitempty"`
-	Autonomy       float32   `json:"autonomy,omitempty"`
-	Reciprocity    float32   `json:"reciprocity,omitempty"`
-	Playfulness    float32   `json:"playfulness,omitempty"`
-	Conflict       float32   `json:"conflict,omitempty"`
+	Ability        float32   `json:"ability,omitempty"`
+	Benevolence    float32   `json:"benevolence,omitempty"`
+	Integrity      float32   `json:"integrity,omitempty"`
 	PatternsFound  uint16    `json:"patterns_found,omitempty"`
 	MemoriesMerged uint16    `json:"memories_merged,omitempty"`
 }
@@ -99,12 +96,9 @@ func RelationshipSnapshotEvent(agentSlug, userID string, metrics *RelationshipMe
 		Timestamp:   time.Now(),
 		AgentSlug:   agentSlug,
 		UserID:      userID,
-		Trust:       float32(metrics.Trust),
-		Intimacy:    float32(metrics.Intimacy),
-		Autonomy:    float32(metrics.Autonomy),
-		Reciprocity: float32(metrics.Reciprocity),
-		Playfulness: float32(metrics.Playfulness),
-		Conflict:    float32(metrics.Conflict),
+		Ability:     float32(metrics.Ability),
+		Benevolence: float32(metrics.Benevolence),
+		Integrity:   float32(metrics.Integrity),
 	}
 }
 

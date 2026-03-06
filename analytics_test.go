@@ -56,16 +56,16 @@ func TestMemoryExtractedEvent(t *testing.T) {
 
 func TestRelationshipSnapshotEvent(t *testing.T) {
 	metrics := &RelationshipMetrics{
-		Trust:   0.8,
-		Intimacy: 0.6,
-		Autonomy: 0.5,
+		Ability:     0.8,
+		Benevolence: 0.6,
+		Integrity:   0.5,
 	}
 	e := RelationshipSnapshotEvent("bot", "u1", metrics)
 	if e.Type != "relationship_snapshot" {
 		t.Errorf("expected relationship_snapshot, got %s", e.Type)
 	}
-	if e.Trust != 0.8 {
-		t.Errorf("expected trust 0.8, got %f", e.Trust)
+	if e.Ability != 0.8 {
+		t.Errorf("expected ability 0.8, got %f", e.Ability)
 	}
 }
 

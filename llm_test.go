@@ -59,7 +59,7 @@ func TestExtractMemories_ValidJSON(t *testing.T) {
 			},
 		},
 		RelationshipShifts: map[string]MetricShift{
-			"trust": {Delta: 0.1, Reason: "User shared personal plans"},
+			"ability": {Delta: 0.1, Reason: "Agent demonstrated domain competence"},
 		},
 	}
 
@@ -88,8 +88,8 @@ func TestExtractMemories_ValidJSON(t *testing.T) {
 	if got.Emotional[0].EmotionalTags.Valence != 0.9 {
 		t.Errorf("expected valence 0.9, got %f", got.Emotional[0].EmotionalTags.Valence)
 	}
-	if shift, ok := got.RelationshipShifts["trust"]; !ok {
-		t.Error("expected trust shift")
+	if shift, ok := got.RelationshipShifts["ability"]; !ok {
+		t.Error("expected ability shift")
 	} else if shift.Delta != 0.1 {
 		t.Errorf("expected delta 0.1, got %f", shift.Delta)
 	}
@@ -165,7 +165,7 @@ func TestAnalyzeMemories_ValidJSON(t *testing.T) {
 			{Arc: "anxious to calm", Significance: "medium"},
 		},
 		RelationshipEvolution: map[string]MetricShift{
-			"trust": {Delta: 0.05, Reason: "consistent engagement"},
+			"ability": {Delta: 0.05, Reason: "consistent competence demonstrated"},
 		},
 		ConsolidationSuggestions: []ConsolidationSuggestion{
 			{MemoryIDs: []string{"1", "2"}, ConsolidatedContent: "User enjoys hiking and nature"},
