@@ -1,5 +1,7 @@
 # Citations
 
+> **Source of truth:** [lamina/docs/CITATIONS.md](https://github.com/benaskins/lamina/blob/main/docs/CITATIONS.md)
+
 Research referenced in axon-memo design and implementation.
 
 ## Trust model

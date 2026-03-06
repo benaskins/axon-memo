@@ -1,5 +1,7 @@
 # Design Principles
 
+> **Source of truth:** [lamina/docs/DesignPrinciples.md](https://github.com/benaskins/lamina/blob/main/docs/DesignPrinciples.md)
+
 This document separates principles into two categories: those that guide us as builders, and those that govern how axon agents conduct themselves at runtime.
 
 ---
