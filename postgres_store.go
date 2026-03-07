@@ -2,7 +2,6 @@ package memo
 
 import (
 	"context"
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"crypto/rand"
@@ -139,7 +138,11 @@ func (s *PostgresStore) Close() {
 }
 
 // SaveMemory inserts a memory row and returns its generated ID.
+// If CreatedAt is zero, it defaults to time.Now().
 func (s *PostgresStore) SaveMemory(ctx context.Context, mem Memory) (string, error) {
+	if mem.CreatedAt.IsZero() {
+		mem.CreatedAt = time.Now()
+	}
 	id := newUUID()
 	tagsJSON, err := marshalEmotionalTags(mem.EmotionalTags)
 	if err != nil {
@@ -298,7 +301,7 @@ func (s *PostgresStore) GetPersonalityContext(ctx context.Context, agentSlug, us
 	err := s.pool.QueryRow(ctx, `
 		SELECT context FROM personality_contexts WHERE agent_slug = $1 AND user_id = $2
 	`, agentSlug, userID).Scan(&personalityContext)
-	if err == sql.ErrNoRows {
+	if err == pgx.ErrNoRows {
 		return "", nil
 	}
 	return personalityContext, err
