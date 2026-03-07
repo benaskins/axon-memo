@@ -325,6 +325,24 @@ func (s *PostgresStore) GetActiveAgents(ctx context.Context) ([]string, error) {
 	return agents, rows.Err()
 }
 
+// GetActiveUsers returns distinct user IDs that have memories for a given agent.
+func (s *PostgresStore) GetActiveUsers(ctx context.Context, agentSlug string) ([]string, error) {
+	rows, err := s.pool.Query(ctx, `SELECT DISTINCT user_id FROM memories WHERE agent_slug = $1`, agentSlug)
+	if err != nil {
+		return nil, fmt.Errorf("query active users: %w", err)
+	}
+	defer rows.Close()
+	var users []string
+	for rows.Next() {
+		var uid string
+		if err := rows.Scan(&uid); err != nil {
+			return nil, err
+		}
+		users = append(users, uid)
+	}
+	return users, rows.Err()
+}
+
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
 func (s *PostgresStore) scanRelationshipMetrics(ctx context.Context, agentSlug, userID string) (*RelationshipMetrics, error) {
