@@ -3,7 +3,6 @@
 // Required environment variables:
 //
 //	DATABASE_URL      PostgreSQL connection string (with pgvector extension)
-//	ANTHROPIC_API_KEY Anthropic API key (for extraction/consolidation)
 //	CONVERSATION_URL  Base URL of the conversation service
 //	OLLAMA_URL        Ollama base URL for embeddings (e.g. http://localhost:11434)
 //
@@ -12,7 +11,8 @@
 //	PORT              HTTP listen port (default: 8086)
 //	EMBED_MODEL       Ollama embedding model (default: nomic-embed-text)
 //	EMBEDDING_DIM     Embedding vector dimension (default: 768 for nomic-embed-text)
-//	TEXT_MODEL        Anthropic model (default: claude-haiku-4-5-20251001)
+//	CLAUDE_PATH       Path to claude CLI (default: /opt/homebrew/bin/claude)
+//	CLAUDE_MODEL      Claude model to use (default: claude-haiku-4-5-20251001)
 package main
 
 import (
@@ -25,13 +25,13 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"os/exec"
 	"os/signal"
 	"strconv"
+	"strings"
 	"syscall"
 	"time"
 
-	"github.com/anthropics/anthropic-sdk-go"
-	"github.com/anthropics/anthropic-sdk-go/option"
 	memo "github.com/benaskins/axon-memo"
 )
 
@@ -47,20 +47,20 @@ func run() error {
 	defer cancel()
 
 	databaseURL := requireEnv("DATABASE_URL")
-	apiKey := requireEnv("ANTHROPIC_API_KEY")
 	conversationURL := requireEnv("CONVERSATION_URL")
 	ollamaURL := requireEnv("OLLAMA_URL")
 
 	port := envOr("PORT", "8086")
 	dim := envInt("EMBEDDING_DIM", 768)
 	embedModel := envOr("EMBED_MODEL", "nomic-embed-text")
-	textModel := anthropic.Model(envOr("TEXT_MODEL", string(anthropic.ModelClaudeHaiku4_5_20251001)))
+	claudePath := envOr("CLAUDE_PATH", "/opt/homebrew/bin/claude")
+	claudeModel := envOr("CLAUDE_MODEL", "claude-haiku-4-5-20251001")
 
 	slog.Info("starting axon-memo",
 		"port", port,
 		"embedding_dim", dim,
 		"embed_model", embedModel,
-		"text_model", textModel,
+		"claude_model", claudeModel,
 	)
 
 	store, err := memo.NewPostgresStore(ctx, databaseURL, dim)
@@ -69,26 +69,7 @@ func run() error {
 	}
 	defer store.Close()
 
-	client := anthropic.NewClient(option.WithAPIKey(apiKey))
-
-	generate := func(ctx context.Context, prompt string, temperature float64, maxTokens int) (string, error) {
-		msg, err := client.Messages.New(ctx, anthropic.MessageNewParams{
-			Model:     textModel,
-			MaxTokens: int64(maxTokens),
-			Messages: []anthropic.MessageParam{
-				anthropic.NewUserMessage(anthropic.NewTextBlock(prompt)),
-			},
-			Temperature: anthropic.Float(temperature),
-		})
-		if err != nil {
-			return "", fmt.Errorf("anthropic message: %w", err)
-		}
-		if len(msg.Content) == 0 {
-			return "", fmt.Errorf("empty response from model")
-		}
-		return msg.Content[0].Text, nil
-	}
-
+	generate := claudeGenerate(claudePath, claudeModel)
 	embed := ollamaEmbed(ollamaURL, embedModel)
 
 	source := memo.NewConversationClient(conversationURL)
@@ -104,7 +85,7 @@ func run() error {
 		Addr:         ":" + port,
 		Handler:      srv.Handler(),
 		ReadTimeout:  30 * time.Second,
-		WriteTimeout: 60 * time.Second,
+		WriteTimeout: 120 * time.Second,
 		IdleTimeout:  120 * time.Second,
 	}
 
@@ -124,6 +105,26 @@ func run() error {
 		shutCtx, shutCancel := context.WithTimeout(context.Background(), 15*time.Second)
 		defer shutCancel()
 		return httpSrv.Shutdown(shutCtx)
+	}
+}
+
+// claudeGenerate returns a TextGenerator that shells out to the claude CLI.
+// Uses the Max plan ($0 cost) via non-interactive mode.
+func claudeGenerate(claudePath, model string) memo.TextGenerator {
+	return func(ctx context.Context, prompt string, temperature float64, maxTokens int) (string, error) {
+		cmd := exec.CommandContext(ctx, claudePath,
+			"-p", prompt,
+			"--output-format", "text",
+			"--model", model,
+		)
+		var stdout, stderr bytes.Buffer
+		cmd.Stdout = &stdout
+		cmd.Stderr = &stderr
+
+		if err := cmd.Run(); err != nil {
+			return "", fmt.Errorf("claude cli: %w: %s", err, stderr.String())
+		}
+		return strings.TrimSpace(stdout.String()), nil
 	}
 }
 
