@@ -1,10 +1,10 @@
 # axon-memo
 
-Long-term memory extraction and consolidation for LLM-powered agents. Part of [lamina](https://github.com/benaskins/lamina) — each axon package can be used independently.
+> Domain package · Part of the [lamina](https://github.com/benaskins/lamina-mono) workspace
 
-Extracts facts from conversations, deduplicates them, and serves consolidated memories on demand.
+Long-term memory extraction and consolidation for LLM agents. Extracts episodic, semantic, and emotional memories from conversations, deduplicates them through consolidation, and serves ranked memories on demand via semantic recall. Relationship trustworthiness tracking uses the Mayer, Davis & Schoorman (1995) ABI model.
 
-## Install
+## Getting started
 
 ```
 go get github.com/benaskins/axon-memo@latest
@@ -12,29 +12,26 @@ go get github.com/benaskins/axon-memo@latest
 
 Requires Go 1.24+.
 
-## Usage
+axon-memo is a domain package — it provides types, interfaces, and HTTP handlers but no `main`. You assemble it in your own composition root by wiring a `MemoryStore`, `TextGenerator`, and `EmbeddingGenerator`. See [`example/`](example/) for a working setup.
 
-```go
-extractor := memo.NewExtractor(ollamaClient, extractionModel)
-retriever := memo.NewRetriever(memoryStore, ollamaClient, embeddingModel)
-consolidator := memo.NewConsolidator(memoryStore, ollamaClient, consolidationModel)
+## CLI
 
-srv := memo.NewServer(memoryStore, extractor, retriever, consolidator)
-http.Handle("/", srv)
+The `memo` CLI at [`cmd/memo/`](cmd/memo/) provides `memo store` and `memo recall` commands that talk to a running axon-memo service over HTTP. Install with:
+
+```
+go install github.com/benaskins/axon-memo/cmd/memo@latest
 ```
 
-### Key types
+## Key types
 
-- `Memory`, `RecalledMemory` — memory domain types
-- `MemoryStore` — persistence interface (embedding-aware)
+- `Memory`, `RecalledMemory` — memory domain types (episodic, semantic, emotional)
+- `MemoryStore` — persistence interface (vector search, relationship metrics, consolidation)
 - `Extractor` — extracts memories from conversations via LLM
-- `Retriever` — semantic recall with embedding similarity
+- `Retriever` — semantic recall with embedding similarity and relevance ranking
 - `Consolidator` — deduplicates and merges related memories
-- `Server` — HTTP server with extract, recall, and consolidation endpoints
-
-## Acknowledgements
-
-Memory architecture inspired by the [A-MEM](https://arxiv.org/abs/2502.12110) paper on agentic memory for LLM agents (Xu et al., 2025).
+- `Scheduler` — periodic consolidation across active agents and users
+- `Server` — HTTP handlers for extract, recall, store, and consolidation endpoints
+- `TextGenerator`, `EmbeddingGenerator` — function types wired to an LLM at the composition root
 
 ## License
 
