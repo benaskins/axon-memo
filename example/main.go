@@ -41,9 +41,10 @@ func main() {
 	retriever := memo.NewRetriever(store, embed)
 	consolidator := memo.NewConsolidator(store, source, generate, embed)
 
-	// 5. Create server and wire optional dependencies
-	server := memo.NewServer(store, extractor, retriever, consolidator)
-	// server.Analytics = memo.NewAnalyticsClient("http://look.studio.internal:8084")
+	// 5. Create server with optional dependencies
+	server := memo.NewServer(store, extractor, retriever, consolidator,
+		// memo.WithAnalytics(memo.NewAnalyticsClient("http://look.studio.internal:8084")),
+	)
 
 	// 6. Start consolidation scheduler (runs daily at 2AM)
 	server.StartScheduler()

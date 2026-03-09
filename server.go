@@ -18,33 +18,33 @@ type Server struct {
 	consolidator *Consolidator
 	scheduler    *Scheduler
 
-	// Analytics emits analytics events. Set before calling Handler().
-	Analytics AnalyticsEmitter
-
-	// EventStore records domain events. Set before calling Handler().
-	EventStore fact.EventStore
+	analytics  AnalyticsEmitter
+	eventStore fact.EventStore
 }
 
 // NewServer creates a Server with all memory service components.
-func NewServer(store MemoryStore, extractor *Extractor, retriever *Retriever, consolidator *Consolidator) *Server {
-	return &Server{
+func NewServer(store MemoryStore, extractor *Extractor, retriever *Retriever, consolidator *Consolidator, opts ...Option) *Server {
+	s := &Server{
 		store:        store,
 		extractor:    extractor,
 		retriever:    retriever,
 		consolidator: consolidator,
 	}
+	for _, opt := range opts {
+		opt(s)
+	}
+	return s
 }
 
 // Handler returns an http.Handler with all memory service routes.
-// Call this after setting optional dependencies like Analytics.
 func (s *Server) Handler() http.Handler {
-	if s.Analytics != nil {
-		s.extractor.analytics = s.Analytics
-		s.consolidator.analytics = s.Analytics
+	if s.analytics != nil {
+		s.extractor.analytics = s.analytics
+		s.consolidator.analytics = s.analytics
 	}
-	if s.EventStore != nil {
-		s.extractor.eventStore = s.EventStore
-		s.consolidator.eventStore = s.EventStore
+	if s.eventStore != nil {
+		s.extractor.eventStore = s.eventStore
+		s.consolidator.eventStore = s.eventStore
 	}
 	mux := http.NewServeMux()
 	mux.HandleFunc("POST /api/memory/store", s.handleStore)
