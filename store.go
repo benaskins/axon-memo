@@ -2,11 +2,12 @@ package memo
 
 import (
 	"context"
-	"errors"
+
+	"github.com/benaskins/axon"
 )
 
 // ErrNotFound is returned when a requested entity does not exist.
-var ErrNotFound = errors.New("not found")
+var ErrNotFound = axon.ErrNotFound
 
 // MemoryStore persists memories, extraction jobs, relationship metrics, and personality contexts.
 type MemoryStore interface {
