@@ -23,6 +23,8 @@ type mockStore struct {
 
 	personalityCtx string
 	personalityErr error
+
+	unconsolidated []Memory
 }
 
 func (m *mockStore) CreateExtractionJob(_ context.Context, _, _, _ string) (*ExtractionJob, error) {
@@ -54,7 +56,7 @@ func (m *mockStore) UpdateRelationshipMetrics(_ context.Context, _, _ string, _ 
 }
 
 func (m *mockStore) GetUnconsolidatedMemories(_ context.Context, _, _ string) ([]Memory, error) {
-	return nil, nil
+	return m.unconsolidated, nil
 }
 
 func (m *mockStore) MarkMemoriesConsolidated(_ context.Context, _ []string) error {

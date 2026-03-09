@@ -5,15 +5,18 @@ import (
 	"fmt"
 	"log/slog"
 	"time"
+
+	fact "github.com/benaskins/axon-fact"
 )
 
 // Extractor orchestrates memory extraction from conversations.
 type Extractor struct {
-	store     MemoryStore
-	source    ConversationSource
-	generate  TextGenerator
-	embed     EmbeddingGenerator
-	analytics AnalyticsEmitter
+	store      MemoryStore
+	source     ConversationSource
+	generate   TextGenerator
+	embed      EmbeddingGenerator
+	analytics  AnalyticsEmitter
+	eventStore fact.EventStore
 }
 
 // NewExtractor creates an Extractor with the given dependencies.
@@ -181,6 +184,8 @@ func (e *Extractor) storeMemories(ctx context.Context, result *ExtractionResult,
 	now := time.Now()
 	var skipped int
 
+	stream := MemoryStream(agentSlug, userID)
+
 	store := func(memType string, mems []ExtractedMemory) error {
 		for _, mem := range mems {
 			embedding, err := e.embed(ctx, mem.Content)
@@ -190,7 +195,7 @@ func (e *Extractor) storeMemories(ctx context.Context, result *ExtractionResult,
 				continue
 			}
 
-			_, err = e.store.SaveMemory(ctx, Memory{
+			id, err := e.store.SaveMemory(ctx, Memory{
 				AgentSlug:      agentSlug,
 				UserID:         userID,
 				ConversationID: &conversationID,
@@ -204,6 +209,18 @@ func (e *Extractor) storeMemories(ctx context.Context, result *ExtractionResult,
 			})
 			if err != nil {
 				return fmt.Errorf("save %s memory: %w", memType, err)
+			}
+
+			if err := emit(ctx, e.eventStore, stream, MemoryExtracted{
+				MemoryID:       id,
+				ConversationID: conversationID,
+				AgentSlug:      agentSlug,
+				UserID:         userID,
+				MemoryType:     memType,
+				Content:        mem.Content,
+				Importance:     mem.Importance,
+			}); err != nil {
+				slog.Warn("failed to emit memory.extracted event", "error", err)
 			}
 		}
 		return nil
@@ -228,8 +245,24 @@ func (e *Extractor) storeMemories(ctx context.Context, result *ExtractionResult,
 
 func (e *Extractor) updateRelationship(ctx context.Context, result *ExtractionResult, agentSlug, userID string) error {
 	deltas := make(map[string]float64)
+	reasons := make(map[string]string)
 	for metric, shift := range result.RelationshipShifts {
 		deltas[metric] = shift.Delta
+		reasons[metric] = shift.Reason
 	}
-	return e.store.UpdateRelationshipMetrics(ctx, agentSlug, userID, deltas)
+	if len(deltas) == 0 {
+		return nil
+	}
+	if err := e.store.UpdateRelationshipMetrics(ctx, agentSlug, userID, deltas); err != nil {
+		return err
+	}
+	if err := emit(ctx, e.eventStore, MemoryStream(agentSlug, userID), RelationshipShifted{
+		AgentSlug: agentSlug,
+		UserID:    userID,
+		Shifts:    deltas,
+		Reasons:   reasons,
+	}); err != nil {
+		slog.Warn("failed to emit relationship.shifted event", "error", err)
+	}
+	return nil
 }

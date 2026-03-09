@@ -5,15 +5,18 @@ import (
 	"fmt"
 	"log/slog"
 	"time"
+
+	fact "github.com/benaskins/axon-fact"
 )
 
 // Consolidator analyzes and merges memories overnight.
 type Consolidator struct {
-	store     MemoryStore
-	source    ConversationSource
-	generate  TextGenerator
-	embed     EmbeddingGenerator
-	analytics AnalyticsEmitter
+	store      MemoryStore
+	source     ConversationSource
+	generate   TextGenerator
+	embed      EmbeddingGenerator
+	analytics  AnalyticsEmitter
+	eventStore fact.EventStore
 }
 
 // NewConsolidator creates a Consolidator with the given dependencies.
@@ -161,6 +164,7 @@ Return JSON:
 
 func (c *Consolidator) applyConsolidation(ctx context.Context, result *ConsolidationResult, agentSlug, userID string) error {
 	now := time.Now()
+	stream := MemoryStream(agentSlug, userID)
 
 	for _, suggestion := range result.ConsolidationSuggestions {
 		embedding, err := c.embed(ctx, suggestion.ConsolidatedContent)
@@ -169,7 +173,7 @@ func (c *Consolidator) applyConsolidation(ctx context.Context, result *Consolida
 			continue
 		}
 
-		_, err = c.store.SaveMemory(ctx, Memory{
+		id, err := c.store.SaveMemory(ctx, Memory{
 			AgentSlug:      agentSlug,
 			UserID:         userID,
 			ConversationID: nil,
@@ -188,6 +192,16 @@ func (c *Consolidator) applyConsolidation(ctx context.Context, result *Consolida
 		if err := c.store.MarkMemoriesConsolidated(ctx, suggestion.MemoryIDs); err != nil {
 			return fmt.Errorf("mark consolidated: %w", err)
 		}
+
+		if err := emit(ctx, c.eventStore, stream, MemoryConsolidated{
+			SourceMemoryIDs: suggestion.MemoryIDs,
+			NewMemoryID:     id,
+			AgentSlug:       agentSlug,
+			UserID:          userID,
+			Content:         suggestion.ConsolidatedContent,
+		}); err != nil {
+			slog.Warn("failed to emit memory.consolidated event", "error", err)
+		}
 	}
 
 	return nil
@@ -195,11 +209,24 @@ func (c *Consolidator) applyConsolidation(ctx context.Context, result *Consolida
 
 func (c *Consolidator) applyRelationshipEvolution(ctx context.Context, result *ConsolidationResult, agentSlug, userID string) error {
 	deltas := make(map[string]float64)
+	reasons := make(map[string]string)
 	for metric, shift := range result.RelationshipEvolution {
 		deltas[metric] = shift.Delta
+		reasons[metric] = shift.Reason
 	}
-	if len(deltas) > 0 {
-		return c.store.UpdateRelationshipMetrics(ctx, agentSlug, userID, deltas)
+	if len(deltas) == 0 {
+		return nil
+	}
+	if err := c.store.UpdateRelationshipMetrics(ctx, agentSlug, userID, deltas); err != nil {
+		return err
+	}
+	if err := emit(ctx, c.eventStore, MemoryStream(agentSlug, userID), RelationshipShifted{
+		AgentSlug: agentSlug,
+		UserID:    userID,
+		Shifts:    deltas,
+		Reasons:   reasons,
+	}); err != nil {
+		slog.Warn("failed to emit relationship.shifted event", "error", err)
 	}
 	return nil
 }
@@ -217,7 +244,18 @@ func (c *Consolidator) generatePersonality(ctx context.Context, agentSlug, userI
 		return fmt.Errorf("generate personality: %w", err)
 	}
 
-	return c.store.SavePersonalityContext(ctx, agentSlug, userID, personalityContext)
+	if err := c.store.SavePersonalityContext(ctx, agentSlug, userID, personalityContext); err != nil {
+		return err
+	}
+
+	if err := emit(ctx, c.eventStore, MemoryStream(agentSlug, userID), PersonalitySynthesised{
+		AgentSlug: agentSlug,
+		UserID:    userID,
+		Context:   personalityContext,
+	}); err != nil {
+		slog.Warn("failed to emit personality.synthesised event", "error", err)
+	}
+	return nil
 }
 
 // BuildPersonalityPrompt constructs the LLM prompt for personality generation.

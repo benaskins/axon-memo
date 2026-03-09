@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/benaskins/axon"
+	fact "github.com/benaskins/axon-fact"
 )
 
 // Server provides HTTP handlers for the memory service.
@@ -19,6 +20,9 @@ type Server struct {
 
 	// Analytics emits analytics events. Set before calling Handler().
 	Analytics AnalyticsEmitter
+
+	// EventStore records domain events. Set before calling Handler().
+	EventStore fact.EventStore
 }
 
 // NewServer creates a Server with all memory service components.
@@ -37,6 +41,10 @@ func (s *Server) Handler() http.Handler {
 	if s.Analytics != nil {
 		s.extractor.analytics = s.Analytics
 		s.consolidator.analytics = s.Analytics
+	}
+	if s.EventStore != nil {
+		s.extractor.eventStore = s.EventStore
+		s.consolidator.eventStore = s.EventStore
 	}
 	mux := http.NewServeMux()
 	mux.HandleFunc("POST /api/memory/store", s.handleStore)
