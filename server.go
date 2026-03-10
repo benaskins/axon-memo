@@ -213,7 +213,7 @@ func (s *Server) handleConsolidate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	axon.WriteJSON(w, http.StatusAccepted, map[string]string{
+	axon.WriteJSON(w, http.StatusOK, map[string]string{
 		"status": "completed",
 		"agent":  req.AgentSlug,
 		"user":   req.UserID,
