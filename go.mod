@@ -1,14 +1,14 @@
 module github.com/benaskins/axon-memo
 
-go 1.26.0
+go 1.26.1
 
 require (
 	github.com/benaskins/axon v0.3.0
+	github.com/benaskins/axon-fact v0.1.1
 	github.com/spf13/cobra v1.10.2
 )
 
 require (
-	github.com/benaskins/axon-fact v0.1.1 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/caarlos0/env/v11 v11.3.1 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
