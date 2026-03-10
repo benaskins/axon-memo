@@ -111,7 +111,7 @@ func (c *Consolidator) ConsolidateAgent(ctx context.Context, agentSlug, userID s
 func BuildAnalysisPrompt(memories []Memory, agentSlug string, metrics *RelationshipMetrics) string {
 	memoryText := ""
 	for _, mem := range memories {
-		timestamp := mem.CreatedAt.Format("15:04")
+		timestamp := mem.CreatedAt.Format("2006-01-02 15:04")
 		memoryText += fmt.Sprintf("[%s] %s (%s, importance: %.2f): %s\n",
 			timestamp, mem.MemoryType, mem.ID, mem.Importance, mem.Content)
 	}
@@ -189,6 +189,8 @@ func (c *Consolidator) applyConsolidation(ctx context.Context, result *Consolida
 			return fmt.Errorf("save consolidated memory: %w", err)
 		}
 
+		// Mark source memories as consolidated AFTER the replacement is saved
+		// to prevent data loss if the save fails.
 		if err := c.store.MarkMemoriesConsolidated(ctx, suggestion.MemoryIDs); err != nil {
 			return fmt.Errorf("mark consolidated: %w", err)
 		}

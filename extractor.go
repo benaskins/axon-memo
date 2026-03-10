@@ -123,7 +123,7 @@ func (e *Extractor) ExtractConversation(ctx context.Context, jobID, conversation
 func BuildExtractionPrompt(messages []ConversationMessage, agent *AgentInfo, metrics *RelationshipMetrics) string {
 	conversationText := ""
 	for _, msg := range messages {
-		timestamp := msg.CreatedAt.Format("15:04")
+		timestamp := msg.CreatedAt.Format("2006-01-02 15:04")
 		conversationText += fmt.Sprintf("[%s] %s: %s\n", timestamp, msg.Role, msg.Content)
 	}
 

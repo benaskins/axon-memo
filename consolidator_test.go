@@ -39,10 +39,10 @@ func TestBuildAnalysisPrompt(t *testing.T) {
 	}
 
 	// Verify memories are formatted with timestamp, type, ID, importance, content
-	if !strings.Contains(prompt, "[14:30] episodic (mem-1, importance: 0.70): User asked about Go concurrency") {
+	if !strings.Contains(prompt, "[2026-03-07 14:30] episodic (mem-1, importance: 0.70): User asked about Go concurrency") {
 		t.Error("prompt should contain formatted first memory")
 	}
-	if !strings.Contains(prompt, "[15:00] emotional (mem-2, importance: 0.90): User expressed frustration with debugging") {
+	if !strings.Contains(prompt, "[2026-03-07 15:00] emotional (mem-2, importance: 0.90): User expressed frustration with debugging") {
 		t.Error("prompt should contain formatted second memory")
 	}
 
