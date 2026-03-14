@@ -28,7 +28,7 @@ func main() {
 	store := NewInMemoryStore()
 
 	// 2. Conversation source — reads messages from axon-chat.
-	// In production: memo.NewConversationClient("http://chat.studio.internal:8080")
+	// In production: memo.NewConversationClient("http://chat.example.com:8080")
 	source := &stubConversationSource{}
 
 	// 3. LLM functions — wired to your provider of choice.
@@ -43,7 +43,7 @@ func main() {
 
 	// 5. Create server with optional dependencies
 	server := memo.NewServer(store, extractor, retriever, consolidator,
-		// memo.WithAnalytics(memo.NewAnalyticsClient("http://look.studio.internal:8084")),
+		// memo.WithAnalytics(memo.NewAnalyticsClient("http://look.example.com:8084")),
 	)
 
 	// 6. Start consolidation scheduler (runs daily at 2AM)
