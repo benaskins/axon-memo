@@ -14,6 +14,26 @@ Requires Go 1.24+.
 
 axon-memo is a domain package — it provides types, interfaces, and HTTP handlers but no `main`. You assemble it in your own composition root by wiring a `MemoryStore`, `TextGenerator`, and `EmbeddingGenerator`. See [`example/`](example/) for a working setup.
 
+```go
+// Wire LLM functions and a MemoryStore at the composition root.
+var store memo.MemoryStore       // e.g. PostgreSQL + pgvector
+var source memo.ConversationSource // reads messages from axon-chat
+var generate memo.TextGenerator    // LLM text completion
+var embed memo.EmbeddingGenerator  // LLM embedding model
+
+extractor := memo.NewExtractor(store, source, generate, embed)
+retriever := memo.NewRetriever(store, embed)
+consolidator := memo.NewConsolidator(store, source, generate, embed)
+
+server := memo.NewServer(store, extractor, retriever, consolidator)
+server.StartScheduler() // nightly consolidation at 2AM
+defer server.StopScheduler()
+
+mux := http.NewServeMux()
+mux.Handle("/", server.Handler())
+log.Fatal(http.ListenAndServe(":8086", mux))
+```
+
 ## CLI
 
 The `memo` CLI at [`cmd/memo/`](cmd/memo/) provides `memo store` and `memo recall` commands that talk to a running axon-memo service over HTTP. Install with:
