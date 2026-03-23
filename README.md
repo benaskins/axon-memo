@@ -10,7 +10,7 @@ Long-term memory extraction and consolidation for LLM agents. Extracts episodic,
 go get github.com/benaskins/axon-memo@latest
 ```
 
-Requires Go 1.26+.
+Requires Go 1.26.1+.
 
 axon-memo is a domain package — it provides types, interfaces, and HTTP handlers but no `main`. You assemble it in your own composition root by wiring a `MemoryStore`, `TextGenerator`, and `EmbeddingGenerator`. See [`example/`](example/) for a working setup.
 
@@ -51,7 +51,11 @@ go install github.com/benaskins/axon-memo/cmd/memo@latest
 - `Consolidator` — deduplicates and merges related memories
 - `Scheduler` — periodic consolidation across active agents and users
 - `Server` — HTTP handlers for extract, recall, store, and consolidation endpoints
+- `ConversationClient` — HTTP client for fetching conversation data
+- `AnalyticsClient` — HTTP client for emitting analytics events
 - `TextGenerator`, `EmbeddingGenerator` — function types wired to an LLM at the composition root
+- `ExtractRequest`, `StoreRequest`, `ConsolidateRequest` — HTTP request types
+- `RelationshipMetrics` — trustworthiness tracking (Mayer, Davis & Schoorman model)
 
 ## License
 
