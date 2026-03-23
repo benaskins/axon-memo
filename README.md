@@ -10,7 +10,7 @@ Long-term memory extraction and consolidation for LLM agents. Extracts episodic,
 go get github.com/benaskins/axon-memo@latest
 ```
 
-Requires Go 1.24+.
+Requires Go 1.26+.
 
 axon-memo is a domain package — it provides types, interfaces, and HTTP handlers but no `main`. You assemble it in your own composition root by wiring a `MemoryStore`, `TextGenerator`, and `EmbeddingGenerator`. See [`example/`](example/) for a working setup.
 
@@ -25,7 +25,7 @@ extractor := memo.NewExtractor(store, source, generate, embed)
 retriever := memo.NewRetriever(store, embed)
 consolidator := memo.NewConsolidator(store, source, generate, embed)
 
-server := memo.NewServer(store, extractor, retriever, consolidator)
+server := memo.NewServer(store, extractor, retriever, consolidator, memo.WithAnalytics(analytics))
 server.StartScheduler() // nightly consolidation at 2AM
 defer server.StopScheduler()
 
