@@ -1,3 +1,8 @@
+---
+module: github.com/benaskins/axon-memo
+kind: service
+---
+
 # axon-memo
 
 Long-term memory extraction and consolidation for LLM agents.
@@ -20,28 +25,28 @@ Main dependencies from go.mod:
 ## Key Files
 
 Core domain logic:
-- `types.go` — core domain types and data structures
-- `store.go` — MemoryStore interface definition
-- `extractor.go` — memory extraction from conversations
-- `retrieval.go` — semantic memory recall and ranking
-- `consolidator.go` — memory consolidation and deduplication
-- `scheduler.go` — periodic consolidation scheduling
-- `server.go` — HTTP handlers and routing
+- `types.go`  - core domain types and data structures
+- `store.go`  - MemoryStore interface definition
+- `extractor.go`  - memory extraction from conversations
+- `retrieval.go`  - semantic memory recall and ranking
+- `consolidator.go`  - memory consolidation and deduplication
+- `scheduler.go`  - periodic consolidation scheduling
+- `server.go`  - HTTP handlers and routing
 
 LLM integration:
-- `llm.go` — LLM function types and prompt building
-- `conversation_client.go` — client for fetching conversation history
+- `llm.go`  - LLM function types and prompt building
+- `conversation_client.go`  - client for fetching conversation history
 
 Analytics and events:
-- `analytics.go` — analytics event tracking
-- `domain_events.go` — domain event definitions
+- `analytics.go`  - analytics event tracking
+- `domain_events.go`  - domain event definitions
 
 CLI:
-- `cmd/memo/main.go` — CLI entry point
-- `cmd/memo/store.go` — memory storage commands
-- `cmd/memo/recall.go` — memory recall commands
+- `cmd/memo/main.go`  - CLI entry point
+- `cmd/memo/store.go`  - memory storage commands
+- `cmd/memo/recall.go`  - memory recall commands
 
 Example:
-- `example/main.go` — example service composition
-- `example/store.go` — example MemoryStore implementation
-- `example/stubs.go` — stub implementations for testing
+- `example/main.go`  - example service composition
+- `example/store.go`  - example MemoryStore implementation
+- `example/stubs.go`  - stub implementations for testing
