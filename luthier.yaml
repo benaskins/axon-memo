@@ -1,0 +1,15 @@
+name: axon-memo
+purpose: Long-term memory extraction and consolidation
+use_when: Cross-session memory
+deterministic: true
+snippet:
+  imports:
+    - path: github.com/benaskins/axon-memo
+      alias: memo
+  requires:
+    - github.com/benaskins/axon-memo
+  deps:
+    - axon
+  setup: |
+    _ = memo.NewConversationClient(envOrDefault("CHAT_SERVICE_URL", "http://localhost:8080"))
+    // TODO: wire memo extractor, retriever, and consolidator
