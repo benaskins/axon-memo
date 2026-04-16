@@ -2,37 +2,9 @@ package memo
 
 import (
 	"context"
-	"crypto/rand"
-	"encoding/hex"
-	"encoding/json"
 
 	fact "github.com/benaskins/axon-fact"
 )
-
-// EventTyper is implemented by all domain event structs.
-type EventTyper interface {
-	EventType() string
-}
-
-// NewEvent creates a fact.Event from a domain event struct.
-func NewEvent(stream string, data EventTyper) (fact.Event, error) {
-	raw, err := json.Marshal(data)
-	if err != nil {
-		return fact.Event{}, err
-	}
-	return fact.Event{
-		ID:     generateEventID(),
-		Stream: stream,
-		Type:   data.EventType(),
-		Data:   raw,
-	}, nil
-}
-
-func generateEventID() string {
-	b := make([]byte, 16)
-	rand.Read(b)
-	return hex.EncodeToString(b)
-}
 
 // Stream name helpers
 
@@ -86,11 +58,11 @@ type PersonalitySynthesised struct {
 func (e PersonalitySynthesised) EventType() string { return "personality.synthesised" }
 
 // emit appends a domain event to the event store. If es is nil, it's a no-op.
-func emit(ctx context.Context, es fact.EventStore, stream string, data EventTyper) error {
+func emit(ctx context.Context, es fact.EventStore, stream string, data fact.EventTyper) error {
 	if es == nil {
 		return nil
 	}
-	ev, err := NewEvent(stream, data)
+	ev, err := fact.NewEvent(stream, data)
 	if err != nil {
 		return err
 	}
