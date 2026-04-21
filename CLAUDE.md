@@ -10,7 +10,7 @@
 
 ## Constraints
 - Trust model is grounded in Mayer, Davis & Schoorman (1995)  - do not replace with ad-hoc relationship dimensions
-- Depends on axon (HTTP lifecycle) and axon-fact (event sourcing)  - do not add dependencies on other axon-* service packages
+- Depends on axon (HTTP lifecycle) and axon-fact (event sourcing). Additional axon-* primitive packages (axon-base, axon-tool, axon-talk, etc.) are acceptable dependencies when needed  - do not depend on other axon-* domain packages (axon-chat, axon-auth, axon-task, etc.)
 - Memory ranking weights are intentional  - do not flatten or simplify the scoring algorithm without justification
 
 ## Testing
